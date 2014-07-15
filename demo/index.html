@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    	<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+        <title>DPGMM</title>
+        <style>
+
+       	/*
+       	 *	style for circle chart
+       	 */
+		.node {
+		  cursor: pointer;
+		}
+
+		.node:hover {
+		  stroke: #000;
+		  stroke-width: 1.5px;
+		}
+
+		.node--leaf {
+		  fill: #fff;
+		}
+
+		.label {
+		  text-anchor: middle;
+		  text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff, 0 -1px 0 #fff;
+		  font-size: 12px;
+		}
+
+       	/*
+       	 *	style for bar chart
+       	 */
+		.label,
+		.node--root,
+		.node--leaf {
+		  pointer-events: none;
+		}
+
+		.axis path,
+		.axis line {
+		  fill: none;
+		  stroke: #000;
+		  shape-rendering: crispEdges;
+		}
+
+		h1, h2, h3 {
+			font-family: 'Helvetica', serif;
+			font-weight: 200;
+        	text-align: center;
+		}
+
+		body {
+			background-color: #a3f5cf;
+			font-family: 'Helvetica', serif;
+			font-weight: 200;
+		}
+
+
+		.bar {
+		  fill: steelblue;
+		}
+
+		.x.axis path {
+		  display: none;
+		}
+
+		#cir {
+			width: 960px;
+		}
+
+		#bar {
+			background-color: #75dccd;
+			margin: 20px;
+			padding: 40px;
+			border-radius: 15px;
+			width: 960px;
+		}
+
+
+		</style>
+        <script data-main="scripts/main" src="bower_components/requirejs/require.js"></script>
+    </head>
+	<body>
+	
+	<div id="cir"><h1>McDonald's Menu</h1><h3>Click to zoom in!</h3></div>
+	<div id="bar"><h2>Cluster Averages</h2></div>
+	</body>
+</html> 
