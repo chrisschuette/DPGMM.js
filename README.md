@@ -1,3 +1,5 @@
+<img src="http://chrisschuette.github.io/DPGMM.js/logo.png" alt="logo"></img>
+
 DPGMM.js
 ========
 
