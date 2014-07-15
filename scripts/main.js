@@ -2,199 +2,411 @@ requirejs.config({
 
     paths: {
         'numericjs': '../bower_components/numericjs/lib/numeric-1.2.6.min',
+        'd3': '../bower_components/d3/d3.min'
     },
     shim: {
         'numericjs': {
             exports: 'numericjs'
-        }
+        },
+        'd3': {
+            exports: 'd3'
+        }        
     }
 });
 
-require(['numericjs','DPMixtureModel','GaussianComponent','GaussianDistribution','Canvas'],function(numericjs,DPMixtureModel,GaussianComponent,GaussianDistribution,Canvas){
-// test data
-    var X =[[0.68026725,-0.01634235],
-            [3.80951844,0.79848348],
-            [-1.6613724,-0.57766695],
-            [-0.25730725,-0.15555173],
-            [0.69801745,0.17456129],
-            [2.47226496,0.56730505],
-            [0.20684753,-0.02743377],
-            [0.56724636,0.08908341],
-            [-0.34876905,-0.23147121],
-            [-1.45196276,-0.37294507],
-            [1.11115161,0.51674642],
-            [-1.26168053,-0.38330963],
-            [-2.47242165,-0.80872173],
-            [-0.31821255,-0.07944939],
-            [2.49790991,0.43446559],
-            [0.64287628,0.13577027],
-            [-3.367354,-0.70354001],
-            [0.26579325,0.0973308],
-            [2.04404574,0.35792287],
-            [-0.51391468,-0.08218842],
-            [-2.41403049,-0.46315188],
-            [3.31631817,0.95093718],
-            [-0.74472631,-0.1242645],
-            [1.3217336,0.43627568],
-            [-0.36165848,0.07629367],
-            [0.65773425,0.24430766],
-            [-2.00707471,-0.42117236],
-            [0.72816418,0.17415097],
-            [0.51420223,0.11433704],
-            [-0.61665998,-0.08166426],
-            [-0.61124037,-0.07657522],
-            [-2.93468042,-0.60919841],
-            [-0.68302759,-0.17845499],
-            [0.78672983,0.34813274],
-            [0.08830717,0.11150799],
-            [0.21927095,-0.02131589],
-            [-2.09920389,-0.6078704],
-            [-1.16417715,-0.3141582],
-            [-0.98404443,-0.14446015],
-            [0.09548108,0.05362139],
-            [1.53140503,0.47684558],
-            [-2.61161427,-0.66106372],
-            [3.2230116,0.60953045],
-            [-0.30587222,-0.18984789],
-            [1.79256794,0.52885595],
-            [2.07815662,0.52929572],
-            [1.66028636,0.36982812],
-            [1.20117439,0.24699263],
-            [3.03597984,0.7132982],
-            [0.68338192,0.14810454],
-            [-4.68179451,2.05656866],
-            [-6.8893395,3.6785777],
-            [-6.82118638,4.36053483],
-            [-6.28953329,2.47678163],
-            [-4.65394058,4.03636035],
-            [-4.69270873,3.63423126],
-            [-6.60285798,4.33704547],
-            [-6.18760236,3.56171948],
-            [-5.33692362,2.89149293],
-            [-5.57014444,3.64554467],
-            [-5.73650213,2.23041945],
-            [-5.79123328,3.92847013],
-            [-6.4861975,2.89525582],
-            [-6.30460749,4.29448461],
-            [-5.52939367,3.28522329],
-            [-6.53894125,3.37747443],
-            [-6.47203286,3.02228139],
-            [-6.44509225,3.47350331],
-            [-5.59638643,2.85419087],
-            [-5.7227953,2.23485694],
-            [-7.04388031,3.30757419],
-            [-5.88332855,3.44452201],
-            [-4.33179866,3.66113564],
-            [-6.63897556,3.7819114],
-            [-6.92113519,2.67689078],
-            [-6.04776912,4.19933991],
-            [-6.52132838,2.42149302],
-            [-6.06891677,2.5355652],
-            [-5.21135485,2.24404794],
-            [-6.80322806,2.69352597],
-            [-6.34862272,4.35067244],
-            [-5.33540544,3.06128587],
-            [-6.85780486,3.59105408],
-            [-6.70015074,1.91866023],
-            [-5.16837915,3.22185983],
-            [-5.35539882,3.22310936],
-            [-5.40021857,2.54428208],
-            [-6.72396999,3.47711616],
-            [-6.56238676,2.51731516],
-            [-6.31887275,3.01223541],
-            [-6.24779574,2.03753409],
-            [-6.45053288,1.44361779],
-            [-5.56233798,1.87855964],
-            [-6.77306834,3.03651556],
-            [-6.5176941,4.08011022],
-            [-6.90499984,3.18693561],
-            [-6.02749797,2.18233455],
-            [-5.63370634,2.87991757],
-            [-5.45974661,3.57645291],
-            [-4.48573484,3.93556956]];
+var drawCircleChart = function(root, colors) {
+    var margin = 20,
+        diameter = 960;
 
-    /**
-     * The conjugate prior for a gaussian mixture
-     * with unknown mean and unknown variance is
-     * a normal inverse Wishnart distribution
-     *
-     * kappa0: 
-     * nu0:
-     * mu0:
-     * psi0: 
-     */
+    var color = d3.scale.linear()
+        .domain([-1, 5])
+        .range(["hsl(152,80%,80%)", "hsl(228,30%,40%)"])
+        .interpolate(d3.interpolateHcl);
 
-     /**
-      * Dirichlet parameters
-      * 
-      * D: dimensionality of the input data
-      * alpha: concentration parameter
-      */
-     var dirichletParameters = {
-        D: 2,
-        alpha: 1
-     };
+    var pack = d3.layout.pack()
+        .padding(2)
+        .size([diameter - margin, diameter - margin])
+        .value(function(d) { return d.size; })
 
-     var phi = 0.3 * Math.PI / 4.0;
-     var R = [[Math.cos(phi),-Math.sin(phi)],[Math.sin(phi),Math.cos(phi)]];
-     var RT = numeric.transpose(R);
-
-    var priorParameters = {
-        kappa0:     0.0,
-        nu0:        1.0001
-        /*mu0:        [100.0,100.0],
-        psi0:       numeric.dot(numeric.dot(RT,[[50.0,0.0],[0.0,50.0001]]),R)*/
-    };
-
-    var gaussian1 = new GaussianDistribution([-7,-2],[[0.1,0],[0,0.500001]]);
-    var i;
-    for(i=0;i<100;i++)
-        X.push(gaussian1.random());
-
-    var gaussian2 = new GaussianDistribution([7,2],[[0.5,0],[0,0.1]]);
-    var i;
-    for(i=0;i<100;i++)
-        X.push(gaussian2.random());
+    var svg = d3.select("#cir").append("svg")
+        .attr("width", diameter)
+        .attr("height", diameter)
+        .append("g")
+        .attr("transform", "translate(" + diameter / 2 + "," + diameter / 2 + ")");
 
 
-    var DPMM = new DPMixtureModel(GaussianComponent,dirichletParameters,priorParameters);
-    DPMM.cluster(X);
-    var clusters = DPMM.getClusters();
 
-    var canvas = new Canvas('canvas');
-    // x: -4,4; y: -4,4
-    var scaleX = canvas.getWidth() / (10.0 - (-10.0));
-    var scaleY = canvas.getHeight() / (6.0 - (-3.0));
+        /* visualize root */
 
-    var colors = [[255,0,0,255],
-                  [0,255,0,255],
-                  [0,0,255,255],
-                  [0,255,255,255],
-                  [255,0,255,255],
-                  [255,255,0,255]];
 
-    var c = 0;
-    var clusterId;
-    for(clusterId in clusters) {
-        var cluster = clusters[clusterId];
-        var data = cluster.getData();
-        var i;
-        for(i in data) {
-            var x = data[i];
-            x[0] = (x[0] + 10.0) * scaleX;
-            x[1] = canvas.getHeight() - (x[1] + 3.0) * scaleY;
-            x = x.map(Math.round);
-            canvas.setPixel(x,colors[c]);
+          var focus = root,
+              nodes = pack.nodes(root),
+              view;
+
+          var circle = svg.selectAll("circle")
+              .data(nodes)
+              .enter().append("circle")
+              .attr("class", function(d) { return d.parent ? d.children ? "node" : "node node--leaf" : "node node--root"; })
+              .style("fill", function(d) { return d.children ? color(d.depth) : colors[d.name]; })
+              .on("click", function(d) { if (focus !== d) zoom(d), d3.event.stopPropagation(); });
+
+        var texts = svg.selectAll("text")
+              .data(nodes)
+              .enter();
+
+        texts.append("text")
+              .attr("class", "label")
+              .style("fill-opacity", function(d) { return d.parent === root ? 1 : 0; })
+              .style("display", function(d) { return d.parent === root ? null : "none"; })
+              .text(function(d) { return d.name; });
+
+        texts.append("text")
+              .attr("class", "label")
+              .style("fill-opacity", function(d) { return d.parent === root ? 1 : 0; })
+              .style("display", function(d) { return d.parent === root ? null : "none"; })
+              .style("opacity", function(d) { return d.children ? 0 : 1; })
+              .attr("dy", "1.1em") // vertical-align
+              .text(function(d) { return Math.round(d.content); });
+
+
+          var node = svg.selectAll("circle,text");
+          
+
+          d3.select("#cir")
+              .style("background", color(-1))
+              .on("click", function() { zoom(root); });
+
+          zoomTo([root.x, root.y, root.r * 2 + margin]);
+
+          function zoom(d) {
+            var focus0 = focus; focus = d;
+
+            var transition = d3.transition()
+                .duration(d3.event.altKey ? 7500 : 750)
+                .tween("zoom", function(d) {
+                  var i = d3.interpolateZoom(view, [focus.x, focus.y, focus.r * 2 + margin]);
+                  return function(t) { zoomTo(i(t)); };
+                });
+
+            transition.selectAll("#cir text")
+              .filter(function(d) { return d.parent === focus || this.style.display === "inline"; })
+                .style("fill-opacity", function(d) { return d.parent === focus ? 1 : 0; })
+                .each("start", function(d) { if (d.parent === focus) this.style.display = "inline"; })
+                .each("end", function(d) { if (d.parent !== focus) this.style.display = "none"; });
+          }
+
+          function zoomTo(v) {
+            var k = diameter / v[2]; view = v;
+            node.attr("transform", function(d) { return "translate(" + (d.x - v[0]) * k + "," + (d.y - v[1]) * k + ")"; });
+            circle.attr("r", function(d) { return d.r * k; });
+          }
+}
+
+function drawAvgBarChart(rootAvg, colors) {
+
+    var margin = {top: 20, right: 20, bottom: 30, left: 40},
+        width = 960 - margin.left - margin.right,
+        height = 500 - margin.top - margin.bottom;
+
+    var x0 = d3.scale.ordinal()
+        .rangeRoundBands([0, width-150], .1);
+
+    var x1 = d3.scale.ordinal();
+
+    var y = d3.scale.linear()
+        .range([height, 0]);
+
+    var color = d3.scale.ordinal()
+        .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+
+    var xAxis = d3.svg.axis()
+        .scale(x0)
+        .orient("bottom");
+
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left")
+        .tickFormat(d3.format(".2s"));
+
+    var svg = d3.select("#bar").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      console.log(rootAvg)
+      var ageNames = d3.keys(rootAvg[0]).filter(function(key) { return key !== "name"; });
+
+      rootAvg.forEach(function(d) {
+        d.ages = ageNames.map(function(name) { return {name: name, value: +d[name]}; });
+      });
+
+      x0.domain(rootAvg.map(function(d) { return d.name; }));
+      x1.domain(ageNames).rangeRoundBands([0, x0.rangeBand()]);
+      y.domain([0, 100]);
+
+      svg.append("g")
+          .attr("class", "x axis")
+          .attr("transform", "translate(0," + height + ")")
+          .call(xAxis);
+
+      svg.append("g")
+          .attr("class", "y axis")
+          .call(yAxis)
+        .append("text")
+          .attr("transform", "rotate(-90)")
+          .attr("y", 6)
+          .attr("dy", ".71em")
+          .style("text-anchor", "end")
+          .text("Score");;
+
+      var state = svg.selectAll(".state")
+          .data(rootAvg)
+        .enter().append("g")
+          .attr("class", "g")
+          .attr("transform", function(d) { return "translate(" + x0(d.name) + ",0)"; });
+
+      state.selectAll("rect")
+          .data(function(d) { return d.ages; })
+        .enter().append("rect")
+          .attr("width", x1.rangeBand())
+          .attr("x", function(d) { return x1(d.name); })
+          .attr("y", function(d) { return y(d.value); })
+          .attr("height", function(d) { return height - y(d.value); })
+          .style("fill", function(d) { return colors[d.name]; })
+          .style("stroke", "black" )
+          .style("stroke-width", 0.5);
+
+      var legend = svg.selectAll(".legend")
+          .data(ageNames.slice())
+        .enter().append("g")
+          .attr("class", "legend")
+          .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+      legend.append("rect")
+          .attr("x", width - 18)
+          .attr("width", 18)
+          .attr("height", 18)
+          .style("fill", function(d) { return colors[d]; });
+
+      legend.append("text")
+          .attr("x", width - 24)
+          .attr("y", 9)
+          .attr("dy", ".35em")
+          .style("text-anchor", "end")
+          .text(function(d) { return d; });
+
+
+}
+
+require(['d3','numericjs','data','DPMixtureModel','GaussianComponent','GaussianDistribution','Canvas'],function(d3,numericjs,input,DPMixtureModel,GaussianComponent,GaussianDistribution,Canvas){
+
+    var colorArray = [];
+    colorArray.push("hsl(180,80%,80%)");
+    colorArray.push("hsl(40,80%,80%)");
+    colorArray.push("hsl(40,80%,80%)");
+    colorArray.push("hsl(40,80%,80%)");
+    colorArray.push("hsl(40,80%,80%)");
+    colorArray.push("rgb(255,255,255)");
+    colorArray.push("hsl(0,80%,80%)");
+    colorArray.push("rgb(255,255,255)");
+    colorArray.push("hsl(0,80%,80%)");
+    colorArray.push("hsl(240,80%,80%)");
+    colorArray.push("hsl(90,80%,80%)");
+    colorArray.push("hsl(90,80%,80%)");
+    colorArray.push("rgb(255,255,255)");
+    colorArray.push("rgb(183,65,14)");
+
+    var colors = {};
+
+
+    d3.text("data/n.csv", function(text) {
+        var rows = d3.csv.parseRows(text);
+        var labels = rows[0];
+
+        for(var i = 2; i < labels.length; i++)
+          colors[labels[i]] = colorArray[i-2];
+
+        rows.shift();
+        var N_items = rows.length;
+
+        var min = Array.apply(null, new Array(16)).map(Number.prototype.valueOf,99999);
+        var max = Array.apply(null, new Array(16)).map(Number.prototype.valueOf,0);
+
+        var table = rows.map(function(row) {
+            return row.map(function(value,i) {
+                /* first item is the product name string */
+                if(i != 0) {
+                    min[i] = Math.min(min[i], value);
+                    max[i] = Math.max(max[i], value);
+
+                    return +value;
+                } else
+                    return value;
+            });
+        });
+
+        console.log(min);
+        console.log(max);
+
+        /* select data fields */
+        var data = table.map(function(row) { return row.slice(2,16); });
+
+        /* calculate mean and std. deviation */
+        var mean = Array.apply(null, new Array(14)).map(Number.prototype.valueOf,0);
+        var X_sqr_sum = Array.apply(null, new Array(14)).map(Number.prototype.valueOf,0);
+        for (var i = 0; i < data.length; i++) {
+            numeric.addeq(mean,data[i]);
+            numeric.addeq(X_sqr_sum,numeric.mul(data[i],data[i]));
         }
-        c += 1;
-    }
-    canvas.update();
+        numeric.diveq(mean,N_items);
+        var stddev = mean.map(function(x,i) {
+            return Math.sqrt((X_sqr_sum[i] - (mean[i]*mean[i])*N_items)/(N_items - 1));
+        });
 
-    /*for(var i=0;i<X.length;i++) {
-        var x = X[i];
-        x[0] = (x[0] + 10.0) * scaleX;
-        x[1] = canvas.getHeight() - (x[1] + 3.0) * scaleY;
-        x = x.map(Math.round);
-        canvas.setPixel(x,[255,0,0,255]);
-    }*/
+        /* z - scaling */
+        var data_scaled = data.map(function(row) {
+            return numeric.sub(row,mean);
+        });
+        data_scaled = data_scaled.map(function(row) {
+            return numeric.div(row,stddev);
+        });
+
+         /**
+          * Dirichlet parameters
+          * 
+          * D: dimensionality of the input data
+          * alpha: concentration parameter
+          * maxIterations: maximum Markov chain sweeps
+          */
+         var dirichletParameters = {
+            D: data_scaled[0].length,
+            alpha: 1,
+            maxIterations: 100
+         };
+
+        /**
+         * The conjugate prior for a gaussian mixture
+         * with unknown mean and unknown variance is
+         * a normal inverse Wishnart distribution
+         *
+         * kappa0: 
+         * nu0:
+         * mu0:
+         * psi0: 
+         */
+        var priorParameters = {
+        	kappa0:     0.1,
+        	nu0:        0.5,
+          psi0: numeric.mul(numeric.identity(dirichletParameters.D),5)
+        };
+
+        console.log(data_scaled);
+
+       var DPMM = new DPMixtureModel(GaussianComponent,dirichletParameters,priorParameters);
+    	 DPMM.cluster(data_scaled);
+    	 var clusters = DPMM.getClusters();
+
+        var root = {};
+        root["name"] = "Menu";
+        root["children"] = [];
+
+        var minSize = 100;
+        var maxSize = 1000;
+
+        
+        /* iterate over clusters  */
+        var cluster_counter = 1;
+        for (var clusterID in clusters) {
+            if (clusters.hasOwnProperty(clusterID)) {
+                var cluster = clusters[clusterID];
+
+                /* construct cluster node */
+                var cluster_node = {};
+                cluster_node["name"] = "C" + cluster_counter;
+                cluster_node["children"] = [];
+
+                var items = cluster.getData();
+                for (var itemID in items) {
+                    if (items.hasOwnProperty(itemID)) {
+                        var item = data[itemID];
+
+                        var item_node={};
+                        item_node["name"] = table[itemID][0];
+                        item_node["children"] = [];
+
+                        for(var i = 0; i < item.length; i++) {
+                            var attribute_node = {};
+                            attribute_node["name"] = labels[i+2];
+                            attribute_node["content"] = data[itemID][i];
+                            var normalizedSize = (data[itemID][i] - min[i+2])/(max[i+2]-min[i+2]);
+                            attribute_node["size"] = normalizedSize * (maxSize - minSize) + minSize;
+                            item_node["children"].push(attribute_node);
+                        }
+
+                        cluster_node["children"].push(item_node);
+                    }
+
+                }
+
+                /* add as child */
+                root["children"].push(cluster_node);
+                cluster_counter += 1;
+            }
+        }
+        console.log(root);
+
+        minSize = 0;
+        maxSize = 100;
+
+        rootAvg = [];
+        /* iterate over clusters  */
+        var cluster_counter = 1;
+        for (var clusterID in clusters) {
+            if (clusters.hasOwnProperty(clusterID)) {
+                var cluster = clusters[clusterID];
+                var clusterMean = Array.apply(null, new Array(14)).map(Number.prototype.valueOf,0);
+
+
+                /* construct cluster node */
+                var cluster_node = {};
+                cluster_node["name"] = "C" + cluster_counter;
+
+                var items = cluster.getData();
+                var itemCounter = 0;
+                for (var itemID in items) {
+                    if (items.hasOwnProperty(itemID)) {
+                        var item = items[itemID];
+                        /*numeric.addeq(clusterMean, data[itemID]);*/
+                        for(var i = 0; i < item.length; i++) {
+                          var normalizedSize = (data[itemID][i] - min[i+2])/(max[i+2]-min[i+2]);
+                          clusterMean[i] += normalizedSize * (maxSize - minSize) + minSize;
+                        }
+                        itemCounter += 1;
+                    }
+                }
+                numeric.diveq(clusterMean,itemCounter);
+                console.log(clusterMean);
+                for(var i = 2; i < labels.length; i++)
+                  cluster_node[labels[i]] = clusterMean[i-2];
+
+                /* add as child */
+                rootAvg.push(cluster_node);
+                cluster_counter += 1;
+            }
+        }
+
+        console.log(rootAvg);
+
+        /*
+         * Visualize it! 
+         */
+
+        drawCircleChart(root, colors);
+        console.log("root");
+        console.log(root);
+        drawAvgBarChart(rootAvg,colors);
+
+    });
+  d3.select(self.frameElement).style("height", diameter + "px");
 });

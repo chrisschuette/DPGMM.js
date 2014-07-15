@@ -2,6 +2,7 @@ define([], function () {
     var DPMixtureModel = function (ComponentCreator, dirichletParameters, priorParameters) {
     	var D = dirichletParameters.D;
     	var alpha = dirichletParameters.alpha;
+    	var maxIterations = dirichletParameters.maxIterations;
     	var id2cluster = { 0: new ComponentCreator({
     				D: D,
 	    			priorParameters: priorParameters
@@ -24,7 +25,7 @@ define([], function () {
     	this.cluster = function(X) {
 	    	var N = X.length;
 	    	if(D != X[0].length) 
-	    		throw Error("Dimension of data not compatible with priorParameters.");
+	    		throw Error("Dimension of data not compatible with priorParameters: " + X[0].length + " " + D);
 
 	    	console.log("Clustering " + N + " datapoints of dimension " + D);
 
@@ -33,7 +34,6 @@ define([], function () {
 	    	X.map(function(x) { numeric.addeq(mean_data, x) });
 	    	numeric.diveq(mean_data, N);
 	    	priorParameters.mu0 = mean_data;
-
 	    	// initialise clusters
 	    	// one cluster for every data point
 	    	id2cluster = {};
@@ -53,8 +53,8 @@ define([], function () {
 	    	console.log("Initialized collapsed Gibbs sampling with " + n_components + " cluster");
 
 	    	var n_iter = 0;
-
-	    	while(n_iter < 20) {
+	    	console.log("maxIterations: " + maxIterations)
+	    	while(n_iter < maxIterations) {
 	    		n_iter += 1;
 	    		for(var i = 0; i < N; i++) {
 	    			// remove point from its cluster
@@ -79,7 +79,7 @@ define([], function () {
   						if (id2cluster.hasOwnProperty(clusterIndex)) {
     						var cluster = id2cluster[clusterIndex];
     						var marginal_likelihood_Xi = cluster.pdf(X[i]);
-    						var mixing_Xi = cluster.count() / (alpha + N - 1);
+    						var mixing_Xi = cluster.count() / (alpha + N  - 1);
     						probabilities[c] = marginal_likelihood_Xi * mixing_Xi;
     						clusterIds[c] = clusterIndex;
                 			c += 1;
@@ -94,6 +94,7 @@ define([], function () {
                 	var prior_predictive = base_distrib.pdf(X[i]);
                 	var prob_new_cluster = alpha / (alpha + N - 1);
                 	probabilities[c] = prior_predictive * prob_new_cluster;
+                	/*console.log(prior_predictive + " " + prob_new_cluster);*/
                 	clusterIds[c] = newClusterIndex;
 
                 	var psum = probabilities.reduce(function(a, b) { return a + b; }, 0);

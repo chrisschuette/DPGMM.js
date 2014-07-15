@@ -42,8 +42,10 @@ define([], function () {
         this.recompute_ss = function() {
             // if no data, default values
             if(n_points <= 0) {
-                mean = Array.apply(null, new Array(n_var)).map(Number.prototype.valueOf,0);
-                covariance = numeric.mul(numeric.identity(n_var), 100.0);
+                /*mean = Array.apply(null, new Array(n_var)).map(Number.prototype.valueOf,0);
+                covariance = numeric.mul(numeric.identity(n_var), 1.0);*/
+                mean = mu0;
+                covariance = numeric.mul(psi0, (kappa0+1.0) / (kappa0 * (nu0 - n_var + 1)) );
                 return;
             }
             var kappa_n = kappa0 + n_points;
@@ -61,8 +63,11 @@ define([], function () {
             covariance = numeric.mul(psi, (kappa_n+1.0) / (kappa_n * (nu - n_var + 1)) );
 
             // debug
-            if(Math.abs(numeric.det(covariance)) < 1e-8 )
+            if(Math.abs(numeric.det(covariance)) < 1e-12 ) {
+                console.log(numeric.det(covariance));
+                console.log(covariance);
                 throw Error("covariance matrix singular!");
+            }
         };
 
         // init
@@ -94,7 +99,12 @@ define([], function () {
 
         this.init(initialData);
 
-        // pdf
+        // marginal likelihood
+        this.ml = function(x) {
+
+        }
+
+        // (posterior predictive) pdf
         this.pdf = function(x) {
             var size = x.length;
             if(size != mean.length)
@@ -102,7 +112,7 @@ define([], function () {
             if(size != covariance.length || size != covariance[0].length)
                 throw Error("x has invalid dimensions.");
             var det = numeric.det(covariance);
-            if(Math.abs(numeric.det(covariance)) < 1e-8 )
+            if(Math.abs(numeric.det(covariance)) < 1e-12 )
                 throw Error("covariance matrix singular!");
             var norm_const = 1.0 / (Math.pow((2*Math.PI), size/2) * Math.pow(det, 1.0/2))
             var x_mu = numeric.sub(x, mean);
